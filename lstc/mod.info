@@ -1,0 +1,7 @@
+name=Let's See The Code
+poster=poster.png
+id=lstc
+description=Let's See The Code
+url=https://github.com/letsseethecode/zomboid_mod/
+requires=modoptions
+
