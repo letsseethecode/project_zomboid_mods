@@ -2,12 +2,17 @@ require "ISUI/ISPanel"
 require "ISUI/ISButton"
 
 LSTCLockPickingPanel = ISPanel:derive("LSTCLockPickingPanel");
+local LockedColor = {r=1,g=0,b=0,a=0.8};
+local UnlockedColor = {r=0,g=1,b=0,a=0.8};
 
-local a = 0.5;
-local LOCKED = {r=1,g=0,b=0,a=a};
-local UNLOCKED = {r=0,g=1,b=0,a=a};
+--------------------------------------------------------------------------------
+-- LSTCLockPickingPanel
+--------------------------------------------------------------------------------
 
-function LSTCLockPickingPanel:new(x, y, width, height, pins)
+function LSTCLockPickingPanel:new(width, height, pins, door, player)
+    local screen = MainScreen.instance;
+    local x = (screen.width - width) * 0.5;
+    local y = (screen.height - height) * 0.5;
     local o = {};
     o = ISPanel:new(x, y, width, height);
     setmetatable(o, self);
@@ -19,6 +24,9 @@ function LSTCLockPickingPanel:new(x, y, width, height, pins)
     o.buttonBorderColor = {r=0.7, g=0.7, b=0.7, a=0.5};
     o.zOffsetSmallFont = 25;
     o.moveWithMouse = true;
+
+    o.door = door;
+    o.player = player;
 
     o.buttons = {};
     o.locked = {};
@@ -43,29 +51,12 @@ function LSTCLockPickingPanel:reset()
     self.locked = {};
     self.index = 1;
     for i=1,self.pins do
-        self.buttons[i].backgroundColor = LOCKED;
+        self.buttons[i].backgroundColor = LockedColor;
     end
 end
 
 function LSTCLockPickingPanel:initialise()
     ISPanel:initialise(self)
-end
-
-function onButtonClick(args)
-    local buttons = args.sender.buttons;
-
-    if args.sender.locked[args.index] then
-        args.sender:reset();
-    else
-        args.sender.locked[args.index] = true;
-        local button = buttons[args.index];
-        button.backgroundColor = UNLOCKED;
-    end
-end
-
-function onCloseClick(panel)
-    panel:removeFromUIManager();
-    panel:setVisible(false);
 end
 
 function LSTCLockPickingPanel:createChildren()
@@ -74,7 +65,7 @@ function LSTCLockPickingPanel:createChildren()
     local h = (self.height - m * 3) / 2;
     for i=1,self.pins do
         local button = ISButton:new((i-1) * w + m, m, w, h, tostring(i), { sender=self, index=i }, onButtonClick);
-        button.backgroundColor = LOCKED;
+        button.backgroundColor = LockedColor;
         button:initialise();
         self:addChild(button);
         table.insert(self.buttons, button);
@@ -83,14 +74,106 @@ function LSTCLockPickingPanel:createChildren()
     self:addChild(button);    
 end
 
-function onGameStart()
-    print ("LSTCLockPickingPanel onGameStart");
-    local panel = LSTCLockPickingPanel:new(100, 100, 300, 200, 6);
-    panel:initialise();
+--------------------------------------------------------------------------------
+-- Buttons
+--------------------------------------------------------------------------------
 
+function onButtonClick(args)
+    local buttons = args.sender.buttons;
+    local door = args.sender.door;
+    local player = args.sender.player;
+
+    if args.sender.locked[args.index] then
+        args.sender:reset();
+        return
+    end
+    args.sender.locked[args.index] = true;
+    local button = buttons[args.index];
+    button.backgroundColor = UnlockedColor;
+    if args.sender.index == args.sender.pins then
+        args.sender:removeFromUIManager();
+        args.sender:setVisible(false);
+        if door:isLockedByKey() then
+            door:setLockedByKey(false);
+            player:Say(getText("IGUI_LockPicking_Unlocked"));
+        else
+            door:setLockedByKey(true);
+            player:Say(getText("IGUI_LockPicking_Locked"));
+        end
+    else
+        args.sender.index = args.sender.index + 1;
+    end
+end
+
+function onCloseClick(panel)
+    panel:removeFromUIManager();
+    panel:setVisible(false);
+end
+
+--------------------------------------------------------------------------------
+-- LSTCPickDoorAction
+--------------------------------------------------------------------------------
+
+LSTCPickDoorAction = ISBaseTimedAction:derive("LSTCPickDoorAction")
+
+LSTCPickDoorAction.PickDoor = function(self, target, player, time)
+    local action = ISBaseTimedAction.new(self, player)
+    action.typeTimeAction = "pickDoor"
+    action.target = target
+    action.player = player
+    action.stopOnWalk = true
+    action.stopOnRun = true
+    action.maxTime = time
+    action.fromHotbar = false
+
+    if action.character:isTimedActionInstant() then action.maxTime = 1 end
+    return action
+end
+
+LSTCPickDoorAction.isValid = function(self) return true end
+
+LSTCPickDoorAction.start = function(self)
+    self.player:setSneaking(true)
+    self.player:faceThisObject(self.target)
+    ISBaseTimedAction.start(self)
+end
+
+LSTCPickDoorAction.stop = function(self)
+    ISBaseTimedAction.stop(self)
+end
+
+LSTCPickDoorAction.perform = function(self)
+    local panel = LSTCLockPickingPanel:new(300, 150, 2, self.target, self.player);
+    panel:initialise();
     panel:addToUIManager();
     panel:setVisible(true);
 end
 
-Events.OnGameStart.Add(onGameStart);
+--------------------------------------------------------------------------------
+-- Context Menu
+--------------------------------------------------------------------------------
+
+function onPickLockClick(worldobjects, target, player)
+    luautils.walkAdjWindowOrDoor(player, target:getSquare(), target);
+    local action = LSTCPickDoorAction:PickDoor(target, player, 50);
+    ISTimedActionQueue.add(action);
+end
+
+function onContextMenu(playerIndex, context, worldobjects)
+    if not LSTC.Options.LockPicking then return end
+
+    local player = getSpecificPlayer(playerIndex)
+    local target = nil
+    for i, v in ipairs(worldobjects) do
+        if instanceof(v, "IsoDoor") and v:getKeyId() ~= -1 then
+            target = v
+            break
+        end
+    end
+    if target then
+        context:addOptionOnTop(getText("UI_LSTC_LockPicking"), worldobjects, onPickLockClick, target, player)
+    end
+end
+
+Events.OnFillWorldObjectContextMenu.Add(onContextMenu)
 

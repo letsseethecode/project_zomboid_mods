@@ -2,4 +2,7 @@ IGUI_EN = {
     IGUI_Peek_None = "I don't see any zombies",
     IGUI_Peek_One = "I see a zombie",
     IGUI_Peek_Many = "I see some zombies",
+
+    IGUI_LockPicking_Locked = "I locked it",
+    IGUI_LockPicking_Unlocked = "I unlocked it",
 }

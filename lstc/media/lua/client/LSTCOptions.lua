@@ -2,9 +2,11 @@ LSTC = LSTC or {}
 LSTC.Options = LSTC.Options or {}
 
 LSTC.Options.Peek = true
+LSTC.Options.LockPicking = true
 
 local function OnApply(optionValues)
     LSTC.Options.Peek = optionValues.settings.options.peek
+    LSTC.Options.LockPicking = optionValues.settings.options.LockPicking
     -- self:resetLua()
 end
 
@@ -24,6 +26,13 @@ if ModOptions and ModOptions.getInstance then
                 OnApplyMainMenu = OnApply,
                 OnApplyInGame = OnApply,
             },
+            LockPicking = {
+                name = "UI_LSTC_LockPicking",
+                tooltip = "UI_LSTC_LockPicking_Tooltip",
+                default = true,
+                OnApplyMainMenu = OnApply,
+                OnApplyInGame = OnApply,
+            }
         },
     }
 

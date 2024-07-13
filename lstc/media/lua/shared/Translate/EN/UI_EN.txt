@@ -4,4 +4,7 @@ UI_EN = {
 
     UI_LSTC_Peek = "Peek through keyhole",
     UI_LSTC_Peek_Tooltip = "Peek through keyholes to see if zombies are on the other side",
+
+    UI_LSTC_LockPicking = "Pick Lock",
+    UI_LSTC_LockPicking_Tooltip = "Pick Locks using a mini-game",
 }

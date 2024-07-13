@@ -48,7 +48,6 @@ end
 -- getCore():ResetLua(true, "modsChanged")
 
 local function onWorldObjectContextMenu(player, context, worldobjects)
-    context:addOptionOnTop("Reload LUA", worldobjects, LSTC.OnReloadLUA)
     if not LSTC.Options.Peek then return end
 
     local playerObj = getSpecificPlayer(player)
