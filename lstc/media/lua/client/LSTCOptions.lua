@@ -1,8 +1,11 @@
 LSTC = LSTC or {}
 LSTC.Options = LSTC.Options or {}
 
-local function OnApply(self, val)
-    self:resetLua()
+LSTC.Options.Peek = true
+
+local function OnApply(optionValues)
+    LSTC.Options.Peek = optionValues.settings.options.peek
+    -- self:resetLua()
 end
 
 if ModOptions and ModOptions.getInstance then
@@ -10,16 +13,14 @@ if ModOptions and ModOptions.getInstance then
         mod_id = 'LSTC',
         mod_shortname = getText("UI_LSTC_Mod_Short"),
         mod_fullname = getText("UI_LSTC_Mod_Long"),
+        options = {
+        },
         options_data = {
-            doors = {
-                getText("UI_Mod_LSTC_Option_Door_Internal"),
-                getText("UI_Mod_LSTC_Option_Door_External"),
-                getText("UI_Mod_LSTC_Option_Door_All"),
-
+            peek = {
                 -- other properties of the option:
-                name = "UI_Mod_LSTC_Option_Doors",
-                tooltip = "UI_Mod_LSTC_Option_Doors_Tooltip",
-                default = 2,
+                name = "UI_LSTC_Peek",
+                tooltip = "UI_LSTC_Peek_Tooltip",
+                default = true,
                 OnApplyMainMenu = OnApply,
                 OnApplyInGame = OnApply,
             },

@@ -17,9 +17,7 @@ LSTCTimedAction.PeekDoor = function(self, target, playerObj, time)
     return action
 end
 
-LSTCTimedAction.isValid = function(self)
-    return true
-end
+LSTCTimedAction.isValid = function(self) return true end
 
 LSTCTimedAction.start = function(self)
     self.playerObj:setSneaking(true)
@@ -32,8 +30,9 @@ LSTCTimedAction.stop = function(self)
 end
 
 LSTCTimedAction.perform = function(self)
+    local square = self.target:getSquare()
     local opposite = self.target:getOppositeSquare()
-    if opposite:getZombie() then
+    if square:getZombie() or opposite:getZombie() then
         self.playerObj:Say(getText("IGUI_Peek_One"))
     else
         self.playerObj:Say(getText("IGUI_Peek_None"))
@@ -41,11 +40,17 @@ LSTCTimedAction.perform = function(self)
 end
 
 LSTC.Peek.OnPeek = function(worldobjects, target, playerObj)
+    print ("Version=", getGameVersion())
     luautils.walkAdjWindowOrDoor(playerObj, target:getSquare(), target)
     ISTimedActionQueue.add(LSTCTimedAction:PeekDoor(target, playerObj, 50))
 end
 
+-- getCore():ResetLua(true, "modsChanged")
+
 local function onWorldObjectContextMenu(player, context, worldobjects)
+    context:addOptionOnTop("Reload LUA", worldobjects, LSTC.OnReloadLUA)
+    if not LSTC.Options.Peek then return end
+
     local playerObj = getSpecificPlayer(player)
     local target = nil
     for i, v in ipairs(worldobjects) do
@@ -55,7 +60,7 @@ local function onWorldObjectContextMenu(player, context, worldobjects)
         end
     end
     if target then
-        context:addOptionOnTop(getText("UI_Mod_LSTC_Peek"), worldobjects, LSTC.Peek.OnPeek, target, playerObj)
+        context:addOptionOnTop(getText("UI_LSTC_Peek"), worldobjects, LSTC.Peek.OnPeek, target, playerObj)
     end
 end
 

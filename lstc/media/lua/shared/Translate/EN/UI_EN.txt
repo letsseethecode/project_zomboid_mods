@@ -1,13 +1,7 @@
 UI_EN = {
-    UI_Mod_LSTC_Option_Doors = "Doors",
-    UI_Mod_LSTC_Option_Doors_Tooltip = "Which doors can you peak through",
-
-    UI_Mod_LSTC_Peek = "Peek through keyhole",
-
-    UI_Mod_LSTC_Option_Door_Internal = "Internal",
-    UI_Mod_LSTC_Option_Door_External = "External",
-    UI_Mod_LSTC_Option_Door_All = "All",
-
     UI_LSTC_Mod_Short = "Let's See The Code",
     UI_LSTC_Mod_Long = "Let's See The Code",
+
+    UI_LSTC_Peek = "Peek through keyhole",
+    UI_LSTC_Peek_Tooltip = "Peek through keyholes to see if zombies are on the other side",
 }
